@@ -161,46 +161,44 @@ function QuizEngine({ quiz, userData, onComplete }: {
     if (answerState !== 'selected' || !selectedOptionId) return;
     setAnswerState('verifying');
 
-    setTimeout(async () => {
-      try {
-        const res = await fetch('/api/verify-answer', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ questionId: question.id, optionId: selectedOptionId })
-        });
-        const data = await res.json();
-        setCorrectOptionId(data.correctOptionId);
-        setAnswerState('revealed');
+    try {
+      const res = await fetch('/api/verify-answer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questionId: question.id, optionId: selectedOptionId })
+      });
+      const data = await res.json();
+      setCorrectOptionId(data.correctOptionId);
+      setAnswerState('revealed');
 
-        setTimeout(async () => {
-          const newAnswers = { ...answers, [question.id]: selectedOptionId };
-          setAnswers(newAnswers);
-          
-          if (currentIndex < quiz.questions.length - 1) {
-            setCurrentIndex(currentIndex + 1);
-            setAnswerState('idle');
-            setSelectedOptionId(null);
-            setCorrectOptionId(null);
-          } else {
-            const attemptRes = await fetch('/api/quiz-attempts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    quizId: quiz.id,
-                    userName: userData.fullName,
-                    userEmail: userData.email,
-                    orgId: userData.orgId,
-                    answers: newAnswers
-                })
-            });
-            const attemptData = await attemptRes.json();
-            onComplete(newAnswers, { score: attemptData.score, total: attemptData.totalQuestions });
-          }
-        }, 2000); 
-      } catch (e) {
-          console.error(e);
-      }
-    }, 3000); 
+      setTimeout(async () => {
+        const newAnswers = { ...answers, [question.id]: selectedOptionId };
+        setAnswers(newAnswers);
+        
+        if (currentIndex < quiz.questions.length - 1) {
+          setCurrentIndex(currentIndex + 1);
+          setAnswerState('idle');
+          setSelectedOptionId(null);
+          setCorrectOptionId(null);
+        } else {
+          const attemptRes = await fetch('/api/quiz-attempts', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  quizId: quiz.id,
+                  userName: userData.fullName,
+                  userEmail: userData.email,
+                  orgId: userData.orgId,
+                  answers: newAnswers
+              })
+          });
+          const attemptData = await attemptRes.json();
+          onComplete(newAnswers, { score: attemptData.score, total: attemptData.totalQuestions });
+        }
+      }, 2000); 
+    } catch (e) {
+        console.error(e);
+    }
   };
 
   const progress = ((currentIndex) / quiz.questions.length) * 100;
@@ -225,16 +223,16 @@ function QuizEngine({ quiz, userData, onComplete }: {
             const isSelected = selectedOptionId === opt.id;
             const isActuallyCorrect = correctOptionId === opt.id;
             
-            let optStyle = "border-gray-200 hover:border-teal-400 hover:bg-gray-50";
+            let optStyle = "border-gray-200 hover:border-yellow-400 hover:bg-gray-50";
             if (answerState === 'selected') {
-                optStyle = isSelected ? "border-teal-400 ring-2 ring-teal-400/20 scale-[1.02]" : "border-gray-200 opacity-75";
+                optStyle = isSelected ? "border-yellow-400 ring-2 ring-yellow-400/20 bg-yellow-50 scale-[1.02]" : "border-gray-200 opacity-75";
             } else if (answerState === 'verifying') {
-                optStyle = isSelected ? "border-teal-400 ring-2 ring-teal-400/20 animate-pulse" : "border-gray-200 opacity-50";
+                optStyle = isSelected ? "border-yellow-400 ring-2 ring-yellow-400/20 bg-yellow-50 animate-pulse" : "border-gray-200 opacity-50";
             } else if (answerState === 'revealed') {
                 if (isActuallyCorrect) {
-                   optStyle = "border-teal-400 bg-teal-400/20 scale-[1.02]";
+                   optStyle = "border-green-500 bg-green-100 scale-[1.02] text-green-900";
                 } else if (isSelected && !isActuallyCorrect) {
-                   optStyle = "border-red-400 bg-red-100";
+                   optStyle = "border-red-500 bg-red-100 text-red-900";
                 } else {
                    optStyle = "border-gray-200 opacity-50 blur-[1px]";
                 }
@@ -248,8 +246,8 @@ function QuizEngine({ quiz, userData, onComplete }: {
                     className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-300 font-medium text-gray-800 flex justify-between items-center ${optStyle}`}
                 >
                     <span>{opt.text}</span>
-                    {answerState === 'revealed' && isActuallyCorrect && <Check className="w-5 h-5 text-teal-600" />}
-                    {answerState === 'revealed' && isSelected && !isActuallyCorrect && <X className="w-5 h-5 text-red-500" />}
+                    {answerState === 'revealed' && isActuallyCorrect && <Check className="w-5 h-5 text-green-600" />}
+                    {answerState === 'revealed' && isSelected && !isActuallyCorrect && <X className="w-5 h-5 text-red-600" />}
                 </button>
             );
         })}
