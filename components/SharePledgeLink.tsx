@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Copy, Check, Share2 } from 'lucide-react';
+import { Check, Share2 } from 'lucide-react';
 
 export function SharePledgeLink({ title }: { title: string }) {
   const [copied, setCopied] = useState(false);
@@ -12,7 +12,7 @@ export function SharePledgeLink({ title }: { title: string }) {
 
   const handleCopy = async () => {
     try {
-      if (navigator.share && navigator.canShare) {
+      if (typeof navigator !== 'undefined' && navigator.share) {
         await navigator.share({
           title: title,
           text: `Join me and take the pledge: ${title}`,
